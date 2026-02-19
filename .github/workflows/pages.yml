@@ -39,15 +39,15 @@ jobs:
       - name: Build site
         run: bundle exec middleman build --clean
 
-      - name: Fix CSS absolute asset URLs for subpath hosting
-        run: |
-          PREFIX="/gcgs-cdp-documentation"
+      # - name: Fix CSS absolute asset URLs for subpath hosting
+      #   run: |
+      #     PREFIX="/gcgs-cdp-documentation"
 
-          # Only CSS url() - handle url("/..."), url('/...'), url(/...)
-          find build -type f -name "*.css" -print0 | xargs -0 sed -i \
-            -e "s|url(/|url($PREFIX/|g" \
-            -e "s|url(\"/|url(\"$PREFIX/|g" \
-            -e "s|url('/|url('$PREFIX/|g"
+      #     # Only CSS url() - handle url("/..."), url('/...'), url(/...)
+      #     find build -type f -name "*.css" -print0 | xargs -0 sed -i \
+      #       -e "s|url(/|url($PREFIX/|g" \
+      #       -e "s|url(\"/|url(\"$PREFIX/|g" \
+      #       -e "s|url('/|url('$PREFIX/|g"
 
       - name: Upload Pages artifact (main only)
         if: github.ref == 'refs/heads/main'
@@ -55,7 +55,17 @@ jobs:
         with:
           path: build
 
-  deploy:
+# ---------------------------------------
+      - name: Upload build artifact for S3 (integration only)
+        if: github.ref == 'refs/heads/integration'
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-build
+          path: build
+          if-no-files-found: error
+# ---------------------------------------
+
+  deploy_pages:
     if: github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
@@ -66,3 +76,26 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+# ---------------------------------------
+  deploy_s3:
+    if: github.ref == 'refs/heads/integration'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: site-build
+          path: site
+          
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Sync to S3
+        run: |
+          aws s3 sync site "s3://${{ secrets.S3_BUCKET }}/" --delete
