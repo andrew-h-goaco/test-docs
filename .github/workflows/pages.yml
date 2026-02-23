@@ -15,7 +15,7 @@ permissions:
   pages: write
   id-token: write
   issues: write
-  # # pull-requests: write
+  pull-requests: write
 
 concurrency:
   group: "pages-${{ github.ref }}"
