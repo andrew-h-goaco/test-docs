@@ -99,11 +99,11 @@ jobs:
         run: |
           aws s3 sync site "s3://${{ secrets.S3_BUCKET }}/integration/*" --delete
   
-  # debug:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Debug event
-  #       run: 'echo "Event: ${{ github.event_name }}"'
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Debug event
+        run: 'echo "Event: ${{ github.event_name }}"'
 
   # ---------------------------------
   # PR Preview Deploy → S3
