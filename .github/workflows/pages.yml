@@ -94,134 +94,134 @@ jobs:
         run: |
           aws s3 sync site "s3://${{ secrets.S3_BUCKET }}/integration/*" --delete
 
-    # ---------------------------------
+  # ---------------------------------
   # PR Preview Deploy → S3
   # ---------------------------------
-  pr_preview_deploy:
-    # if: github.event_name == 'pull_request' && github.event.action != 'closed'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout PR branch
-        uses: actions/checkout@v4
+  # pr_preview_deploy:
+  #   # if: github.event_name == 'pull_request' && github.event.action != 'closed'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout PR branch
+  #       uses: actions/checkout@v4
 
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: .ruby-version
-          bundler-cache: true
+  #     - name: Setup Ruby
+  #       uses: ruby/setup-ruby@v1
+  #       with:
+  #         ruby-version: .ruby-version
+  #         bundler-cache: true
 
-      - name: Build site
-        run: bundle exec middleman build --clean
+  #     - name: Build site
+  #       run: bundle exec middleman build --clean
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Deploy PR preview
-        run: |
-          PR="${{ github.event.pull_request.number }}"
-          aws s3 sync build "s3://${{ secrets.S3_BUCKET }}/integration/pr${PR}/" --delete
+  #     - name: Deploy PR preview
+  #       run: |
+  #         PR="${{ github.event.pull_request.number }}"
+  #         aws s3 sync build "s3://${{ secrets.S3_BUCKET }}/integration/pr${PR}/" --delete
 
-      - name: Comment preview URL on PR
-        uses: actions/github-script@v7
-        env:
-          PREVIEW_BASE_URL: ${{ secrets.PREVIEW_BASE_URL }}
-        with:
-          script: |
-            const prNumber = context.payload.pull_request.number;
-            const url = `${process.env.PREVIEW_BASE_URL}/integration/pr${prNumber}/`;
-            const marker = '<!-- pr-preview-url -->';
-            const body = `${marker}
-            ✅ **Preview deployed**
-            - ${url}
-            `;
+  #     - name: Comment preview URL on PR
+  #       uses: actions/github-script@v7
+  #       env:
+  #         PREVIEW_BASE_URL: ${{ secrets.PREVIEW_BASE_URL }}
+  #       with:
+  #         script: |
+  #           const prNumber = context.payload.pull_request.number;
+  #           const url = `${process.env.PREVIEW_BASE_URL}/integration/pr${prNumber}/`;
+  #           const marker = '<!-- pr-preview-url -->';
+  #           const body = `${marker}
+  #           ✅ **Preview deployed**
+  #           - ${url}
+  #           `;
 
-            const { owner, repo } = context.repo;
+  #           const { owner, repo } = context.repo;
 
-            const comments = await github.paginate(github.rest.issues.listComments, {
-              owner,
-              repo,
-              issue_number: prNumber,
-              per_page: 100
-            });
+  #           const comments = await github.paginate(github.rest.issues.listComments, {
+  #             owner,
+  #             repo,
+  #             issue_number: prNumber,
+  #             per_page: 100
+  #           });
 
-            const existing = comments.find(c => c.user?.type === 'Bot' && c.body?.includes(marker));
+  #           const existing = comments.find(c => c.user?.type === 'Bot' && c.body?.includes(marker));
 
-            if (existing) {
-              await github.rest.issues.updateComment({
-                owner,
-                repo,
-                comment_id: existing.id,
-                body
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner,
-                repo,
-                issue_number: prNumber,
-                body
-              });
-            }
+  #           if (existing) {
+  #             await github.rest.issues.updateComment({
+  #               owner,
+  #               repo,
+  #               comment_id: existing.id,
+  #               body
+  #             });
+  #           } else {
+  #             await github.rest.issues.createComment({
+  #               owner,
+  #               repo,
+  #               issue_number: prNumber,
+  #               body
+  #             });
+  #           }
 
   # ---------------------------------
   # PR Cleanup on Close
   # ---------------------------------
-  pr_preview_cleanup:
-    if: github.event_name == 'pull_request' && github.event.action == 'closed'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+  # pr_preview_cleanup:
+  #   if: github.event_name == 'pull_request' && github.event.action == 'closed'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Remove PR preview
-        run: |
-          PR="${{ github.event.pull_request.number }}"
-          aws s3 rm "s3://${{ secrets.S3_BUCKET }}/integration/pr${PR}/" --recursive
+  #     - name: Remove PR preview
+  #       run: |
+  #         PR="${{ github.event.pull_request.number }}"
+  #         aws s3 rm "s3://${{ secrets.S3_BUCKET }}/integration/pr${PR}/" --recursive
 
-      - name: Comment preview removal on PR (optional)
-        uses: actions/github-script@v7
-        env:
-          PREVIEW_BASE_URL: ${{ secrets.PREVIEW_BASE_URL }}
-        with:
-          script: |
-            const prNumber = context.payload.pull_request.number;
-            const url = `${process.env.PREVIEW_BASE_URL}/integration/pr${prNumber}/`;
-            const marker = '<!-- pr-preview-url -->';
-            const body = `${marker}
-            🧹 **Preview removed** (PR closed)
-            - ${url}
-            `;
+  #     - name: Comment preview removal on PR (optional)
+  #       uses: actions/github-script@v7
+  #       env:
+  #         PREVIEW_BASE_URL: ${{ secrets.PREVIEW_BASE_URL }}
+  #       with:
+  #         script: |
+  #           const prNumber = context.payload.pull_request.number;
+  #           const url = `${process.env.PREVIEW_BASE_URL}/integration/pr${prNumber}/`;
+  #           const marker = '<!-- pr-preview-url -->';
+  #           const body = `${marker}
+  #           🧹 **Preview removed** (PR closed)
+  #           - ${url}
+  #           `;
 
-            const { owner, repo } = context.repo;
+  #           const { owner, repo } = context.repo;
 
-            const comments = await github.paginate(github.rest.issues.listComments, {
-              owner,
-              repo,
-              issue_number: prNumber,
-              per_page: 100
-            });
+  #           const comments = await github.paginate(github.rest.issues.listComments, {
+  #             owner,
+  #             repo,
+  #             issue_number: prNumber,
+  #             per_page: 100
+  #           });
 
-            const existing = comments.find(c => c.user?.type === 'Bot' && c.body?.includes(marker));
+  #           const existing = comments.find(c => c.user?.type === 'Bot' && c.body?.includes(marker));
 
-            if (existing) {
-              await github.rest.issues.updateComment({
-                owner,
-                repo,
-                comment_id: existing.id,
-                body
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner,
-                repo,
-                issue_number: prNumber,
-                body
-              });
-            }
+  #           if (existing) {
+  #             await github.rest.issues.updateComment({
+  #               owner,
+  #               repo,
+  #               comment_id: existing.id,
+  #               body
+  #             });
+  #           } else {
+  #             await github.rest.issues.createComment({
+  #               owner,
+  #               repo,
+  #               issue_number: prNumber,
+  #               body
+  #             });
+  #           }
