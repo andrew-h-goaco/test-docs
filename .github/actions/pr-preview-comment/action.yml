@@ -22,7 +22,6 @@ runs:
       with:
         github-token: ${{ inputs.github-token }}
         script: |
-          script: |
           const marker = '<!-- pr-preview-url -->';
           const url = process.env.PREVIEW_URL;
           const msg = process.env.PREVIEW_MESSAGE;
