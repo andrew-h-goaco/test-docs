@@ -22,6 +22,11 @@ runs:
       with:
         github-token: ${{ inputs.github-token }}
         script: |
+          script: |
+          console.log("Running PR preview comment script");
+          console.log("PREVIEW_URL:", process.env.PREVIEW_URL);
+          console.log("PREVIEW_MESSAGE:", process.env.PREVIEW_MESSAGE);
+          
           const marker = '<!-- pr-preview-url -->';
           const url = process.env.PREVIEW_URL;
           const msg = process.env.PREVIEW_MESSAGE;
