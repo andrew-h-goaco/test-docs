@@ -150,7 +150,7 @@ jobs:
                 url: "${{ secrets.PREVIEW_BASE_URL }}/previews/${{ github.event.pull_request.base.ref }}/pr${{ github.event.pull_request.number }}/"
 
   # ---------------------------------
-  # PR Cleanup on Close
+  # PR Cleanup on Close  message: "✅ **Preview deployed**"
   # ---------------------------------
   pr_preview_cleanup:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
