@@ -146,7 +146,7 @@ jobs:
               uses: ./.github/actions/pr-preview-comment
               with:
                 github-token: ${{ github.token }}
-                message: "✅ **Preview deployed**"
+                message: "**Preview deployed**"
                 url: "${{ secrets.PREVIEW_BASE_URL }}/previews/${{ github.event.pull_request.base.ref }}/pr${{ github.event.pull_request.number }}/"
 
   # ---------------------------------
