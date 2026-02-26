@@ -2,7 +2,7 @@ name: Configure AWS
 description: Configure AWS credentials via OIDC or static keys
 inputs:
   aws-region:
-    description: ""
+    description: "The region of the resource"
     required: true
   auth-method:
     description: "oidc or keys"
