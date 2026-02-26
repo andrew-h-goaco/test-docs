@@ -127,10 +127,10 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ secrets.AWS_REGION }}
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          # aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          # aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           # --- OIDC ---
-          # role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
 
       - name: Deploy PR preview
         run: |
@@ -147,7 +147,7 @@ jobs:
           url: "${{ env.PREVIEW_BASE_URL }}/previews/${{ github.event.pull_request.base.ref }}/pr${{ github.event.pull_request.number }}/"
 
   # ---------------------------------
-  # PR Cleanup on Close  message:
+  # PR Cleanup on Close
   # ---------------------------------
   pr_preview_cleanup:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
@@ -160,10 +160,10 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ secrets.AWS_REGION }}
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          # aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          # aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           # --- OIDC ---
-          # role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
 
       - name: Remove PR preview
         run: |
