@@ -20,6 +20,11 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Debug auth method
+      shell: bash
+      run: |
+        echo "auth-method input is: '${{ inputs.auth-method }}'"
+
     - name: Configure AWS credentials (OIDC)
       if: ${{ inputs.auth-method == 'oidc' }}
       uses: aws-actions/configure-aws-credentials@v4
