@@ -25,6 +25,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Debug p
+        run: echo "preview_base_url ${{ secrets.PREVIEW_BASE_URL }}, bucket ${{secrets.S3_BUCKET}}"
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -153,7 +156,7 @@ jobs:
     steps:
       - name: Checkout PR branch
         uses: actions/checkout@v4
-        
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
