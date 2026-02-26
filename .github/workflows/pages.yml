@@ -25,8 +25,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Debug p
-        run: echo "preview_base_url ${{ secrets.PREVIEW_BASE_URL }}, bucket ${{secrets.S3_BUCKET}}"
+      - name: Debug env
+        run: env | grep -E 'PREVIEW_BASE_URL|S3_BUCKET'
+        env:
+          PREVIEW_BASE_URL: ${{ secrets.PREVIEW_BASE_URL }}
+          S3_BUCKET: ${{ secrets.S3_BUCKET }}
 
       - name: Checkout
         uses: actions/checkout@v4
