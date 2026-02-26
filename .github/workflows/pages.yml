@@ -25,12 +25,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Debug env
-        run: env | grep -E 'PREVIEW_BASE_URL|S3_BUCKET'
-        env:
-          PREVIEW_BASE_URL: ${{ secrets.PREVIEW_BASE_URL }}
-          S3_BUCKET: ${{ secrets.S3_BUCKET }}
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -141,17 +135,19 @@ jobs:
       - name: Deploy PR preview
         run: |
           aws s3 sync build \
-            "s3://${{ secrets.S3_BUCKET }}/previews/${{ github.event.pull_request.base.ref }}/pr${{ github.event.pull_request.number }}/" --delete          
+            "s3://${{ secrets.S3_BUCKET }}/previews/${{ github.event.pull_request.base.ref }}/pr${{ github.event.pull_request.number }}/" --delete
 
-      - name: Comment preview URL on PR
+      - name: Comment preview URL on PR deployed
         uses: ./.github/actions/pr-preview-comment
+        env:
+          PREVIEW_BASE_URL: "http://${{ secrets.S3_BUCKET }}.s3-website.${{ secrets.AWS_REGION }}.amazonaws.com"
         with:
           github-token: ${{ github.token }}
           message: "✅ **Preview deployed**"
-          url: "${{ secrets.PREVIEW_BASE_URL }}/previews/${{ github.event.pull_request.base.ref }}/pr${{ github.event.pull_request.number }}/"
+          url: "${{ env.PREVIEW_BASE_URL }}/previews/${{ github.event.pull_request.base.ref }}/pr${{ github.event.pull_request.number }}/"
 
   # ---------------------------------
-  # PR Cleanup on Close  message: 
+  # PR Cleanup on Close  message:
   # ---------------------------------
   pr_preview_cleanup:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
@@ -173,10 +169,11 @@ jobs:
         run: |
           aws s3 rm "s3://${{ secrets.S3_BUCKET }}/previews/${{ github.event.pull_request.base.ref }}/pr${{ github.event.pull_request.number }}/" --recursive
 
-      - name: Comment preview URL on PR
-        uses: ./.github/actions/pr-preview-comment 
+      - name: Comment preview URL on PR closed
+        uses: ./.github/actions/pr-preview-comment
+        env:
+          PREVIEW_BASE_URL: "http://${{ secrets.S3_BUCKET }}.s3-website.${{ secrets.AWS_REGION }}.amazonaws.com"
         with:
           github-token: ${{ github.token }}
           message: "🧹 **Preview removed** (PR closed)"
           url: "${{ secrets.PREVIEW_BASE_URL }}/previews/${{ github.event.pull_request.base.ref }}/pr${{ github.event.pull_request.number }}/"
-      
