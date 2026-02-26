@@ -2,11 +2,11 @@ name: Build & Deploy (Middleman → GitHub Pages & S3)
 
 on:
   push:
-    branches: ["main", "integration"]
+    branches: ["main", "staging"]
     paths-ignore:
       - "README.md"
   pull_request:
-    branches: ["integration"]
+    branches: ["main", "staging"]
     types: [opened, synchronize, reopened, ready_for_review, closed]
     paths-ignore:
       - "README.md"
@@ -53,8 +53,8 @@ jobs:
         with:
           path: build
 
-      - name: Upload build artifact for S3 (integration only)
-        if: github.ref == 'refs/heads/integration'
+      - name: Upload build artifact for S3 (staging only)
+        if: github.ref == 'refs/heads/staging'
         uses: actions/upload-artifact@v4
         with:
           name: site-build
@@ -77,10 +77,10 @@ jobs:
         uses: actions/deploy-pages@v4
 
   # -----------------------------
-  # Deploy integration push → S3
+  # Deploy staging push → S3
   # -----------------------------
-  deploy_integration:
-    if: github.ref == 'refs/heads/integration'
+  deploy_staging:
+    if: github.ref == 'refs/heads/staging'
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -102,7 +102,7 @@ jobs:
 
       - name: Sync to S3
         run: |
-          aws s3 sync site "s3://${{ secrets.S3_BUCKET }}/integration/" --delete
+          aws s3 sync site "s3://${{ secrets.S3_BUCKET }}/staging/" --delete
 
   # ---------------------------------
   # PR Preview Deploy → S3
